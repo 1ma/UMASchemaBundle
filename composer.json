@@ -1,0 +1,22 @@
+{
+  "name": "uma/schema-bundle",
+  "description": "Provides annotations for easily placing JsonSchemas on top of routes",
+  "type": "symfony-bundle",
+  "license": "MIT",
+  "keywords": ["symfony", "json-schema"],
+  "homepage": "https://github.com/1ma/UMASchemaBundle",
+  "support": {
+    "issues": "https://github.com/1ma/UMASchemaBundle/issues",
+    "source": "https://github.com/1ma/UMASchemaBundle"
+  },
+  "require": {
+    "php": ">=5.5.0",
+    "justinrainbow/json-schema": "^3.0",
+    "symfony/framework-bundle": "^2.7|^3.0"
+  },
+  "autoload": {
+    "psr-4": {
+      "UMA\\SchemaBundle\\": "src/"
+    }
+  }
+}
