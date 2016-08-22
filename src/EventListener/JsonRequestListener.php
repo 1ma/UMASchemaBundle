@@ -6,6 +6,7 @@ use Doctrine\Common\Annotations\Reader;
 use JsonSchema\Validator;
 use Symfony\Component\Config\FileLocator;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Event\FilterControllerEvent;
 use Symfony\Component\HttpKernel\KernelEvents;
 use UMA\SchemaBundle\Annotation\JsonSchema;
@@ -47,23 +48,9 @@ class JsonRequestListener implements EventSubscriberInterface
 
         foreach ($this->reader->getMethodAnnotations($actionMethod) as $annotation) {
             if ($annotation instanceof JsonSchema) {
-                if (is_array($fullpath = $this->locator->locate($annotation->uri))) {
-                    throw new \UnexpectedValueException('Multiple schemas found');
-                }
-
-                $validator = new Validator();
-                $validator->check(
-                    $requestContent = json_decode($event->getRequest()->getContent()),
-                    (object) ['$ref' => $uri = sprintf('file://%s', $fullpath)]
+                $this->validate(
+                    $event->getRequest(), $this->getSchemaPath($annotation)
                 );
-
-                if (!$validator->isValid()) {
-                    throw new BadJsonRequestException(
-                        $requestContent,
-                        $validator->getSchemaStorage()->getSchema($uri),
-                        $validator->getErrors()
-                    );
-                }
             }
         }
     }
@@ -74,5 +61,44 @@ class JsonRequestListener implements EventSubscriberInterface
     public static function getSubscribedEvents()
     {
         return [KernelEvents::CONTROLLER => 'onKernelController'];
+    }
+
+    /**
+     * @param Request $request
+     * @param string  $schemaPath
+     *
+     * @throws BadJsonRequestException
+     */
+    private function validate(Request $request, $schemaPath)
+    {
+        $validator = new Validator();
+        $validator->check(
+            $requestContent = json_decode($request->getContent()),
+            (object) ['$ref' => $uri = sprintf('file://%s', $schemaPath)]
+        );
+
+        if (!$validator->isValid()) {
+            throw new BadJsonRequestException(
+                $requestContent,
+                $validator->getSchemaStorage()->getSchema($uri),
+                $validator->getErrors()
+            );
+        }
+    }
+
+    /**
+     * @param JsonSchema $annotation
+     *
+     * @return string
+     *
+     * @throws \UnexpectedValueException
+     */
+    private function getSchemaPath(JsonSchema $annotation)
+    {
+        if (is_array($path = $this->locator->locate($annotation->uri))) {
+            throw new \UnexpectedValueException('Multiple schemas found');
+        }
+
+        return $path;
     }
 }

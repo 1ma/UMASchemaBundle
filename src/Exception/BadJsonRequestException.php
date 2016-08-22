@@ -2,7 +2,9 @@
 
 namespace UMA\SchemaBundle\Exception;
 
-class BadJsonRequestException extends \RuntimeException
+use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
+
+class BadJsonRequestException extends BadRequestHttpException
 {
     /**
      * @var array
@@ -26,6 +28,8 @@ class BadJsonRequestException extends \RuntimeException
      */
     public function __construct($data, \stdClass $schema, array $errors)
     {
+        parent::__construct();
+
         $this->data = json_decode(json_encode($data), true);
         $this->schema = json_decode(json_encode($schema), true);
         $this->errors = $errors;
