@@ -5,7 +5,6 @@ namespace UMA\SchemaBundle\EventListener;
 use Doctrine\Common\Annotations\Reader;
 use JsonSchema\Validator;
 use Symfony\Component\Config\FileLocator;
-use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\HttpKernel\Event\FilterControllerEvent;
 use Symfony\Component\HttpKernel\KernelEvents;
@@ -25,20 +24,13 @@ class JsonRequestListener implements EventSubscriberInterface
     private $locator;
 
     /**
-     * @var ContainerInterface
+     * @param Reader      $reader
+     * @param FileLocator $locator
      */
-    private $container;
-
-    /**
-     * @param Reader             $reader
-     * @param FileLocator        $locator
-     * @param ContainerInterface $container
-     */
-    public function __construct(Reader $reader, FileLocator $locator, ContainerInterface $container)
+    public function __construct(Reader $reader, FileLocator $locator)
     {
         $this->reader = $reader;
         $this->locator = $locator;
-        $this->container = $container;
     }
 
     /**
@@ -62,7 +54,7 @@ class JsonRequestListener implements EventSubscriberInterface
                 $validator = new Validator();
                 $validator->check(
                     $requestContent = json_decode($event->getRequest()->getContent()),
-                    (object)['$ref' => $uri = sprintf('file://%s', $fullpath)]
+                    (object) ['$ref' => $uri = sprintf('file://%s', $fullpath)]
                 );
 
                 if (!$validator->isValid()) {

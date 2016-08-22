@@ -25,7 +25,7 @@ class UMASchemaExtension extends Extension
 
     private function processPaths(array $config, ContainerBuilder $container)
     {
-        array_walk($config['paths'], function(&$path) {
+        array_walk($config['paths'], function (&$path) {
             $realPath = realpath($path);
 
             if (false === $realPath || !is_dir($realPath)) {
