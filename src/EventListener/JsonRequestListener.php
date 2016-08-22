@@ -64,8 +64,6 @@ class JsonRequestListener implements EventSubscriberInterface
                         $validator->getErrors()
                     );
                 }
-
-                break;
             }
         }
     }
