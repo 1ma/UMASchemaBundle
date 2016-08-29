@@ -13,5 +13,5 @@ class JsonSchema
      *
      * @Required
      */
-    public $uri;
+    public $filename;
 }

@@ -95,7 +95,7 @@ class JsonRequestListener implements EventSubscriberInterface
      */
     private function getSchemaPath(JsonSchema $annotation)
     {
-        if (is_array($path = $this->locator->locate($annotation->uri))) {
+        if (is_array($path = $this->locator->locate($annotation->filename))) {
             throw new \UnexpectedValueException('Multiple schemas found');
         }
 
