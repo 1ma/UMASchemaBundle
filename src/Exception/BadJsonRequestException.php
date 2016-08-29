@@ -22,15 +22,15 @@ class BadJsonRequestException extends BadRequestHttpException
     private $errors;
 
     /**
-     * @param \stdClass|null $data
-     * @param \stdClass      $schema
-     * @param array          $errors
+     * @param \stdClass|string $data
+     * @param \stdClass|null   $schema
+     * @param array            $errors
      */
-    public function __construct($data, \stdClass $schema, array $errors)
+    public function __construct($data, $schema, array $errors)
     {
         parent::__construct();
 
-        $this->data = json_decode(json_encode($data), true);
+        $this->data = $data;
         $this->schema = json_decode(json_encode($schema), true);
         $this->errors = $errors;
 

@@ -48,14 +48,14 @@ class FullSpectrumTest extends \PHPUnit_Framework_TestCase
             'empty JSON object' => ['{}'],
             'missing field' => ['{"name": "John Doe"}'],
             'invalid field type' => ['{"name": null, "age": 30}'],
-            'invalid field value' => ['{"name": "Old Doe", "age": 99}']
+            'invalid field value' => ['{"name": "Old Doe", "age": 99}'],
         ];
     }
 
     private function makeAndCheckRequest($expectedStatusCode, $payload)
     {
         $this->client
-            ->request('GET', '/', [], [], [], $payload);
+            ->request('GET', '/', [], [], ['CONTENT_TYPE' => 'application/json'], $payload);
 
         $this->assertSame($expectedStatusCode, $this->client->getInternalResponse()->getStatus());
     }
