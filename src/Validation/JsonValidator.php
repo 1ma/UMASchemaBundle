@@ -16,6 +16,11 @@ class JsonValidator
     private $locator;
 
     /**
+     * @var Validator
+     */
+    private $validator;
+
+    /**
      * @param FileLocator $locator
      */
     public function __construct(FileLocator $locator)

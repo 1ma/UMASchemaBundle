@@ -7,7 +7,7 @@ use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 class BadJsonRequestException extends BadRequestHttpException
 {
     /**
-     * @var array
+     * @var \stdClass|string
      */
     private $data;
 
@@ -41,7 +41,7 @@ class BadJsonRequestException extends BadRequestHttpException
     }
 
     /**
-     * @return array
+     * @return \stdClass|string
      */
     public function getData()
     {
@@ -49,7 +49,7 @@ class BadJsonRequestException extends BadRequestHttpException
     }
 
     /**
-     * @return array
+     * @return array|null
      */
     public function getSchema()
     {
