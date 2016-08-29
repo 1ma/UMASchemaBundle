@@ -10,7 +10,7 @@ use UMA\SchemaBundle\Annotation\JsonSchema;
 class TestController extends Controller
 {
     /**
-     * @JsonSchema(uri="person.json")
+     * @JsonSchema(filename="person.json")
      */
     public function indexAction(Request $request)
     {
