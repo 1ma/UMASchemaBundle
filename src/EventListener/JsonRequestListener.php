@@ -3,14 +3,12 @@
 namespace UMA\SchemaBundle\EventListener;
 
 use Doctrine\Common\Annotations\Reader;
-use JsonSchema\Validator;
 use Symfony\Component\Config\FileLocator;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
-use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Event\FilterControllerEvent;
 use Symfony\Component\HttpKernel\KernelEvents;
 use UMA\SchemaBundle\Annotation\JsonSchema;
-use UMA\SchemaBundle\Exception\BadJsonRequestException;
+use UMA\SchemaBundle\Validation\JsonValidator;
 
 class JsonRequestListener implements EventSubscriberInterface
 {
@@ -25,13 +23,20 @@ class JsonRequestListener implements EventSubscriberInterface
     private $locator;
 
     /**
-     * @param Reader      $reader
-     * @param FileLocator $locator
+     * @var JsonValidator
      */
-    public function __construct(Reader $reader, FileLocator $locator)
+    private $validator;
+
+    /**
+     * @param Reader        $reader
+     * @param FileLocator   $locator
+     * @param JsonValidator $validator
+     */
+    public function __construct(Reader $reader, FileLocator $locator, JsonValidator $validator)
     {
         $this->reader = $reader;
         $this->locator = $locator;
+        $this->validator = $validator;
     }
 
     /**
@@ -39,18 +44,9 @@ class JsonRequestListener implements EventSubscriberInterface
      */
     public function onKernelController(FilterControllerEvent $event)
     {
-        if (!is_array($controller = $event->getController())) {
-            return;
-        }
-
-        $actionMethod = (new \ReflectionClass(get_class($controller[0])))
-            ->getMethod($controller[1]);
-
-        foreach ($this->reader->getMethodAnnotations($actionMethod) as $annotation) {
+        foreach ($this->getActionAnnotations((array) $event->getController()) as $annotation) {
             if ($annotation instanceof JsonSchema) {
-                $this->validate(
-                    $event->getRequest(), $this->getSchemaPath($annotation)
-                );
+                $this->validator->validate($event->getRequest(), $this->getSchemaPath($annotation));
             }
         }
     }
@@ -64,26 +60,16 @@ class JsonRequestListener implements EventSubscriberInterface
     }
 
     /**
-     * @param Request $request
-     * @param string  $schemaPath
+     * @param array $controller
      *
-     * @throws BadJsonRequestException
+     * @return object[]
      */
-    private function validate(Request $request, $schemaPath)
+    private function getActionAnnotations(array $controller)
     {
-        $validator = new Validator();
-        $validator->check(
-            $requestContent = json_decode($request->getContent()),
-            (object) ['$ref' => $uri = sprintf('file://%s', $schemaPath)]
-        );
+        $actionMethod = (new \ReflectionClass(get_class($controller[0])))
+            ->getMethod($controller[1]);
 
-        if (!$validator->isValid()) {
-            throw new BadJsonRequestException(
-                $requestContent,
-                $validator->getSchemaStorage()->getSchema($uri),
-                $validator->getErrors()
-            );
-        }
+        return $this->reader->getMethodAnnotations($actionMethod);
     }
 
     /**
@@ -91,7 +77,9 @@ class JsonRequestListener implements EventSubscriberInterface
      *
      * @return string
      *
-     * @throws \UnexpectedValueException
+     * @throws \InvalidArgumentException When the schema file is not found
+     * @throws \UnexpectedValueException When multiple schema files
+     *                                   with the same name are found
      */
     private function getSchemaPath(JsonSchema $annotation)
     {
