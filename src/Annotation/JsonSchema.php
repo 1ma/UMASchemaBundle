@@ -36,5 +36,5 @@ class JsonSchema
      *
      * @var bool
      */
-    public $strict = false;
+    public $strict = true;
 }
